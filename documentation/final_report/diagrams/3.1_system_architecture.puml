@@ -1,0 +1,67 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle uml2
+skinparam packageBackgroundColor #F8F9FA
+skinparam packageBorderColor #333333
+
+title OmniAssist - 5-Tier System Architecture
+
+package "Presentation & Client Tier" {
+    [React 18 / TypeScript Web Client] as WebClient
+    [Manifest V3 Chrome Extension Sidepanel] as ExtensionClient
+    [Offscreen Audio & Media Document] as OffscreenDoc
+}
+
+package "API Gateway & Security Tier" {
+    [FastAPI Application Server] as Gateway
+    [PBKDF2 / JWT Bearer Authenticator] as AuthEngine
+    [Sliding-Window Rate Limiter] as RateLimiter
+    [File Validator & Sanitizer] as FileValidator
+}
+
+package "Real-Time Streaming & Relay Tier" {
+    [WebSocket /api/live Relay] as WSRelay
+    [Luminance Difference Filter (32x18)] as DiffFilter
+    [Audio PCM Chunk Buffer] as AudioBuffer
+    [Conversation Compactor] as Compactor
+}
+
+package "AI Orchestration & Retrieval Tier" {
+    [Multi-Model Dispatcher & Registry] as Dispatcher
+    [Blake2s Hashed-Vector RAG Engine] as RAGEngine
+    [Tavily Sourced Web Search Agent] as SearchAgent
+    [Model Adapters (Gemini, Claude, Groq, NVIDIA, OpenAI)] as Adapters
+}
+
+package "Persistence & Model Provider Tier" {
+    database "SQLite Storage (Conversations, Messages, Files, Usage)" as SQLiteDB
+    folder "Encrypted Upload Storage" as UploadDir
+    cloud "Google Gemini 2.0 / Live API" as GeminiAPI
+    cloud "NVIDIA NIM / OpenRouter (Nemotron)" as NvidiaAPI
+    cloud "Anthropic Claude 3.5 (BYOK)" as ClaudeAPI
+    cloud "Groq LPU (Llama 3.3 / Qwen)" as GroqAPI
+}
+
+WebClient --> Gateway : REST / NDJSON / WS
+ExtensionClient --> Gateway : Authenticated REST / WS
+ExtensionClient --> OffscreenDoc : Tab Media Stream
+Gateway --> AuthEngine : Validate Session
+Gateway --> RateLimiter : Check Daily Limits
+Gateway --> FileValidator : Upload Validation
+Gateway --> WSRelay : WS Live Upstream
+WSRelay --> DiffFilter : Screen Video Track
+WSRelay --> AudioBuffer : Mic Audio Track
+DiffFilter --> GeminiAPI : Adaptive Live Screen (1 FPS)
+AudioBuffer --> GeminiAPI : Bidirectional Audio PCM
+Gateway --> Dispatcher : Stream Chat Request
+Dispatcher --> RAGEngine : Query Local Knowledge
+RAGEngine --> SQLiteDB : Cosine Match on Hashed Buckets
+Dispatcher --> SearchAgent : Sourced Web Lookup
+Dispatcher --> Adapters : Dynamic Routing
+Adapters --> GeminiAPI : REST / SSE Stream
+Adapters --> NvidiaAPI : Fast Vision / Failover Stream
+Adapters --> ClaudeAPI : BYOK Header Injection
+Adapters --> GroqAPI : Ultra-low Latency Inference
+Gateway --> SQLiteDB : Transactions & WAL
+Gateway --> UploadDir : Sandboxed Storage
+@enduml

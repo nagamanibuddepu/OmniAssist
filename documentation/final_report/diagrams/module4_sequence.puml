@@ -1,0 +1,29 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+actor User
+participant "FastAPI Main" as API
+participant "FileService" as FS
+participant "LocalRAGEngine" as RAG
+participant "SQLite Database" as DB
+
+User -> API : POST /api/files (multipart/form-data)
+API -> FS : processUpload(filename, bytes)
+FS -> FS : Verify Signature (%PDF- / Magic Bytes) & Bounds
+FS -> FS : Extract text with PyPDF / UTF-8 decoder
+FS --> API : ProcessedUpload(extractedText, mimeType)
+API -> DB : Insert into files table
+API -> RAG : indexFile(fileId, extractedText)
+loop For each 1100 char chunk (150 overlap)
+    RAG -> RAG : Hash tokens with Blake2s into 4096 buckets
+    RAG -> RAG : L2 normalize vector
+    RAG -> DB : INSERT INTO file_chunks (vector_json)
+end
+API --> User : File Uploaded & Indexed (201 Created)
+... User Sends Message ...
+User -> API : POST /api/chat/stream (query)
+API -> RAG : retrieve(conversationId, query)
+RAG -> DB : SELECT file_chunks for conversation
+RAG -> RAG : Compute Cosine Dot-Product Against Query Vector
+RAG --> API : Top 5 Relevant Chunks
+API -> API : Inject Chunks into Model Context Prompt
+@enduml

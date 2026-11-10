@@ -1,0 +1,38 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+title OmniAssist - Data Flow Diagram (Level 1: Internal Processes)
+
+actor "End User" as User
+cloud "AI Providers" as Providers
+database "SQLite Data Store" as DB
+folder "Upload Storage" as FS
+
+rectangle "1.0\nAuthentication & Session Management" as P1
+rectangle "2.0\nMedia & Screen Stream Ingestion" as P2
+rectangle "3.0\nDocument Processing & Vector RAG" as P3
+rectangle "4.0\nAI Gateway & Multi-Model Orchestration" as P4
+rectangle "5.0\nUsage Metering & Action Dispatcher" as P5
+
+User --> P1 : Login / Register / Token
+P1 --> DB : Validate / Store User Record
+P1 --> User : JWT Bearer Token
+
+User --> P2 : DisplayMedia & Microphone Audio
+P2 --> P4 : Filtered Video Frames (1 FPS) & Audio PCM
+P2 <--> Providers : Bidirectional Live WebSocket
+
+User --> P3 : Upload Document (PDF / Code / Image)
+P3 --> FS : Store Binary File
+P3 --> DB : Store Metadata & Text Chunks
+P3 --> P4 : Retrieve Relevant Lexical Context
+
+User --> P4 : Prompt / Conversation Context
+P4 --> DB : Query Conversation History
+P4 --> Providers : Dispatched Prompt & Context
+Providers --> P4 : Token Stream & Metadata
+P4 --> User : NDJSON Stream
+
+P4 --> P5 : Record Token Count & Actions
+P5 --> DB : Log Usage Events & Action Status
+P5 --> User : Timeline & Usage Dashboard
+@enduml

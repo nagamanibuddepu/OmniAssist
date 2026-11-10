@@ -1,0 +1,19 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+left to right direction
+actor "Client Layer" as Client
+rectangle "Module 3: AI Orchestration & Multi-Model Gateway" {
+    usecase "Inspect Model Registry & Capabilities" as UC1
+    usecase "Stream Completion Request" as UC2
+    usecase "BYOK Header Injection (Anthropic Claude)" as UC3
+    usecase "Automatic Quota Failover (OpenAI -> NVIDIA NIM)" as UC4
+    usecase "Token Usage Extraction & Ledger Logging" as UC5
+    usecase "Integrate Tavily Sourced Search" as UC6
+}
+Client --> UC1
+Client --> UC2
+UC2 ..> UC3 : conditional
+UC2 ..> UC4 : on 429/quota error
+UC2 ..> UC5 : on complete
+UC2 ..> UC6 : if enabled
+@enduml

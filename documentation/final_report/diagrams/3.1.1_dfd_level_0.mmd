@@ -1,0 +1,13 @@
+flowchart LR
+    User["End User (Web / Extension)"]
+    System(("0.0 OmniAssist Multimodal System"))
+    AIProviders["External AI Model Providers
+(Gemini, NVIDIA NIM, Groq, Claude)"]
+    Tavily["Tavily Search Engine"]
+
+    User -->|Prompts, Screen Stream, Audio PCM, Documents| System
+    System -->|Streaming Responses, Live Audio, Action Cards| User
+    System -->|Vision Frames, Audio Chunks, Formatted Context| AIProviders
+    AIProviders -->|NDJSON Tokens, Audio Chunks, Usage Metrics| System
+    System -->|Search Queries| Tavily
+    Tavily -->|Citations & URLs| System

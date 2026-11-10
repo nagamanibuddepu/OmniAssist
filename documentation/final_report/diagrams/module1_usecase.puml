@@ -1,0 +1,21 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+left to right direction
+actor "End User" as User
+rectangle "Module 1: UI & Interaction" {
+    usecase "Authenticate (Login / Register)" as UC1
+    usecase "Manage Conversations (CRUD, Search, Rename)" as UC2
+    usecase "Compose Multimodal Prompt" as UC3
+    usecase "Select AI Model & BYOK Keys" as UC4
+    usecase "Toggle Web Search / Live Dictation" as UC5
+    usecase "Interact via Side Panel Extension" as UC6
+    usecase "Inspect & Approve Proposed Actions" as UC7
+}
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+@enduml

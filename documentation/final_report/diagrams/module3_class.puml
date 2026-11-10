@@ -1,0 +1,36 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+class ModelRegistry {
+    + models: List<Model>
+    + getModel(modelId: string): Model
+    + listConfiguredModels(): List<ModelPublic>
+}
+class Model {
+    + id: string
+    + provider: string
+    + rawModelId: string
+    + capabilities: tuple
+    + key: string
+    + imageInput: boolean
+    + byok: boolean
+    + free: boolean
+}
+class StreamingGateway {
+    + streamCompletion(model: Model, messages: list): AsyncIterator
+    + executeFallback(originalModel: Model, messages: list): AsyncIterator
+}
+class OpenAICompatibleAdapter {
+    + stream(baseUrl: string, model: string, key: string, messages: list): AsyncIterator
+}
+class GeminiAdapter {
+    + stream(model: string, key: string, messages: list): AsyncIterator
+}
+class AnthropicAdapter {
+    + stream(model: string, key: string, messages: list): AsyncIterator
+}
+ModelRegistry *-- Model
+StreamingGateway --> ModelRegistry
+StreamingGateway --> OpenAICompatibleAdapter
+StreamingGateway --> GeminiAdapter
+StreamingGateway --> AnthropicAdapter
+@enduml

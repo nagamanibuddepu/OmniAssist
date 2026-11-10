@@ -1,0 +1,21 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+left to right direction
+actor "User" as User
+rectangle "Module 4: Knowledge, Memory & RAG" {
+    usecase "Upload PDF / Code / Text Document" as UC1
+    usecase "Validate File Signature & Sanitize Name" as UC2
+    usecase "Extract Text & Chunk (1100 chars, 150 overlap)" as UC3
+    usecase "Generate Blake2s Hashed Vectors (4096 Buckets)" as UC4
+    usecase "Perform Local Cosine Similarity Search" as UC5
+    usecase "Compress Long Conversations (Auto-Summarizer)" as UC6
+    usecase "Manage Explicit Personal Memories" as UC7
+}
+User --> UC1
+UC1 ..> UC2 : include
+UC2 ..> UC3 : include
+UC3 ..> UC4 : include
+User --> UC5
+User --> UC6
+User --> UC7
+@enduml

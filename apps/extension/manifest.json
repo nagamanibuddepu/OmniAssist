@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "OmniAssist Companion",
+  "version": "0.1.0",
+  "description": "Open OmniAssist beside your current tab and pass selected page context into a conversation.",
+  "permissions": ["sidePanel", "tabs", "activeTab", "scripting", "storage", "tabCapture", "offscreen"],
+  "host_permissions": ["<all_urls>", "http://localhost:5173/*", "http://localhost:8000/*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": { "service_worker": "service-worker.js", "type": "module" },
+  "action": {
+    "default_title": "Open OmniAssist",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": { "default_path": "panel.html" },
+  "minimum_chrome_version": "116"
+}

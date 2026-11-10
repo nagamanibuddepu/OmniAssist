@@ -1,0 +1,56 @@
+flowchart TD
+    subgraph PresentationTier ["1. Presentation & Client Tier"]
+        WebClient["React 18 / TS Web Workspace"]
+        ExtClient["Chrome MV3 Sidepanel Companion"]
+        OffscreenMedia["Offscreen Media Processor"]
+    end
+
+    subgraph GatewayTier ["2. API Gateway & Security Tier"]
+        FastAPIServer["FastAPI Gateway (/api)"]
+        AuthService["PBKDF2 & JWT Auth"]
+        RateThrottler["Sliding-Window Rate Limiter"]
+        FileInspector["File Validator & Image Sanitizer"]
+    end
+
+    subgraph StreamingTier ["3. Real-Time Streaming & Relay Tier"]
+        WSRelay["WebSocket Relay (/api/live)"]
+        FrameSampler["Luminance Diff Filter (32x18)"]
+        AudioStreamer["PCM Audio Chunk Streamer"]
+    end
+
+    subgraph OrchestrationTier ["4. AI Orchestration & Retrieval Tier"]
+        ModelRegistry["Provider Gateway & Fallback Registry"]
+        RAGEngine["Blake2s Hashed Vector RAG (4096 Buckets)"]
+        WebSearchService["Tavily Sourced Web Search"]
+    end
+
+    subgraph ProviderStorageTier ["5. Storage & Remote Providers"]
+        SQLiteDB[("SQLite Database (WAL Mode)")]
+        UploadStore[("Private Upload Storage")]
+        GeminiCloud["Google Gemini Live & Multimodal"]
+        NvidiaCloud["NVIDIA NIM Nemotron 3.5 VL"]
+        GroqCloud["Groq LPU (Llama 3.3 / Qwen)"]
+        ClaudeCloud["Anthropic Claude 3.5 (BYOK)"]
+    end
+
+    WebClient -->|REST, NDJSON, WS| FastAPIServer
+    ExtClient -->|Tab Stream, REST| FastAPIServer
+    ExtClient --> OffscreenMedia
+    FastAPIServer --> AuthService
+    FastAPIServer --> RateThrottler
+    FastAPIServer --> FileInspector
+    FastAPIServer --> WSRelay
+    WSRelay --> FrameSampler
+    WSRelay --> AudioStreamer
+    FrameSampler -->|1 FPS JPEGs| GeminiCloud
+    AudioStreamer -->|Bi-directional PCM| GeminiCloud
+    FastAPIServer --> ModelRegistry
+    ModelRegistry --> RAGEngine
+    RAGEngine --> SQLiteDB
+    ModelRegistry --> WebSearchService
+    ModelRegistry -->|Adaptive Failover| NvidiaCloud
+    ModelRegistry --> GroqCloud
+    ModelRegistry --> ClaudeCloud
+    ModelRegistry --> GeminiCloud
+    FastAPIServer --> SQLiteDB
+    FastAPIServer --> UploadStore

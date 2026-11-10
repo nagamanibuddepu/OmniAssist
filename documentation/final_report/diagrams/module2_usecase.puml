@@ -1,0 +1,21 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+left to right direction
+actor "User" as User
+rectangle "Module 2: Real-Time Voice & Screen Processing" {
+    usecase "Initiate Screen Sharing (getDisplayMedia)" as UC1
+    usecase "Stream PCM Audio from Microphone" as UC2
+    usecase "Compute Luminance Difference (32x18 Grid)" as UC3
+    usecase "Adaptive Frame Throttling (1 FPS Max)" as UC4
+    usecase "Gemini Live WebSocket Bidirectional Relay" as UC5
+    usecase "Offscreen Audio Synthesis & Playback" as UC6
+}
+User --> UC1
+User --> UC2
+UC1 ..> UC3 : include
+UC3 ..> UC4 : include
+UC4 --> UC5
+UC2 --> UC5
+UC5 --> UC6
+UC6 --> User : Spoken Response
+@enduml

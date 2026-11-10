@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+actor Client
+participant "FastAPI Middleware" as Guard
+participant "AuthRouter" as Auth
+participant "DatabaseManager" as DB
+participant "UsageMeter" as Meter
+
+Client -> Guard : POST /api/auth/login (email, password)
+Guard -> Guard : Check Sliding-Window IP Rate Limit (5 attempts/min)
+Guard -> Auth : Route Request
+Auth -> DB : SELECT password_hash FROM users WHERE email=?
+DB --> Auth : User record
+Auth -> Auth : verify_password() using hmac.compare_digest
+alt Valid Credentials
+    Auth -> Auth : issue_token(HS256 with 12h expiry)
+    Auth --> Client : 200 OK + {token: "..."}
+else Invalid Password
+    Auth -> Auth : Execute constant-time dummy hash verification
+    Auth --> Client : 401 Unauthorized
+end
+... Authenticated Chat Request ...
+Client -> Guard : POST /api/chat/stream with Authorization: Bearer
+Guard -> DB : _reserve_provider_request(ownerId)
+alt Request Under Daily Limit
+    DB --> Guard : Approved (Counter incremented)
+    Guard --> Client : Stream NDJSON Response
+else Exceeded Daily Quota
+    Guard --> Client : 429 Too Many Requests
+end
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+actor User
+participant "ChatComposer" as UI
+participant "WorkspaceState" as State
+participant "FastAPI Gateway" as API
+participant "Model Adapter" as Adapter
+
+User -> UI : Enter prompt & click Send
+UI -> State : sendMessage(content, attachments)
+State -> API : POST /api/chat/stream (NDJSON)
+activate API
+API -> Adapter : Stream completion
+activate Adapter
+Adapter --> API : Yield chunk
+API --> State : Transfer NDJSON token chunk
+State --> UI : Progressively render markdown
+Adapter --> API : Complete + usage metadata
+deactivate Adapter
+API --> State : Close stream
+deactivate API
+State --> UI : Finalize assistant bubble & update word wrap
+@enduml
