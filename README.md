@@ -2,6 +2,8 @@
 
 OmniAssist is a multimodal AI workspace with a React web interface and a Chrome Manifest V3 companion extension. It combines conversation, live voice and screen interaction, document retrieval, web search, persistent memories, usage tracking, and user-approved browser actions behind a FastAPI backend.
 
+For the detailed project rationale, key capabilities, implementation design, database procedures, security model, provider integrations, and fault-tolerant routing behavior, see [Project Engineering Report](report.md).
+
 ## Features
 
 - Chat with multiple AI providers through a provider-independent streaming API.
@@ -206,15 +208,6 @@ flowchart TD
 
 The application is designed to keep proposed browser actions in a non-executing pending state until the user approves them.
 
-## Tech Stack
-
-- **Backend:** Python, FastAPI, Pydantic Settings, SQLite
-- **Frontend:** React, TypeScript, Vite
-- **Browser companion:** Chrome Manifest V3 side panel
-- **AI integrations:** Gemini, OpenAI-compatible APIs, Anthropic, Groq, OpenRouter, NVIDIA NIM
-- **Document processing:** PyPDF, Pillow
-- **Streaming:** NDJSON, Server-Sent Events-compatible responses, WebSockets
-
 ## Repository Layout
 
 ```text
@@ -371,13 +364,3 @@ Build the web application:
 cd apps\web
 npm run build
 ```
-
-## Security Notes
-
-- Use a strong, persistent `OMNIASSIST_AUTH_SECRET` in production.
-- Store provider keys only in server environment variables or `.env`.
-- Restrict `OMNIASSIST_WEB_ORIGIN` appropriately for deployed environments.
-- Limit database and upload-directory permissions.
-- Review provider data-handling terms before uploading sensitive documents.
-- Keep browser actions behind explicit approval, and review proposed payloads before execution.
-- Do not commit `.env`, databases, uploaded files, API keys, or production secrets.
