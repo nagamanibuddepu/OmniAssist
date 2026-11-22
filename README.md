@@ -15,21 +15,196 @@ OmniAssist is a multimodal AI workspace with a React web interface and a Chrome 
 
 ## Architecture
 
-```text
-React Web Client / Chrome Extension
-                  |
-       FastAPI REST + WebSocket API
-                  |
-      +-----------+-----------+
-      |                       |
- AI provider gateway      Local services
- |  Gemini, OpenAI,        |  SQLite
- |  Anthropic, Groq,       |  Upload storage
- |  OpenRouter, NVIDIA     |  RAG index
- |  Tavily search          |  Usage accounting
+OmniAssist consists of three main client-facing surfaces and one backend:
+
+```mermaid
+flowchart LR
+    User([User])
+
+    subgraph Clients["Presentation layer"]
+        Web["React web workspace"]
+        Panel["Chrome side panel"]
+        Offscreen["Extension offscreen media document"]
+    end
+
+    subgraph Backend["FastAPI backend"]
+        Auth["Authentication and authorization"]
+        API["REST, streaming, and WebSocket API"]
+        Chat["Conversation and prompt orchestration"]
+        Files["Upload and document processing"]
+        RAG["Local hashed-vector RAG"]
+        Actions["Browser action approval"]
+        Usage["Usage and cost accounting"]
+    end
+
+    subgraph Local["Private local storage"]
+        SQLite[(SQLite database)]
+        Uploads[(Uploaded files and text)]
+    end
+
+    subgraph Providers["External AI services"]
+        Gemini["Google Gemini"]
+        OpenAI["OpenAI"]
+        Anthropic["Anthropic"]
+        Groq["Groq"]
+        Other["OpenRouter and NVIDIA NIM"]
+        Search["Tavily web search"]
+    end
+
+    User --> Web
+    User --> Panel
+    Panel --> Offscreen
+
+    Web -->|Bearer token, REST, NDJSON, WebSocket| API
+    Panel -->|Page context and REST| API
+    Offscreen -->|Captured media| Panel
+
+    API --> Auth
+    API --> Chat
+    API --> Files
+    API --> Actions
+    API --> Usage
+
+    Chat --> RAG
+    Chat --> Providers
+    Files --> Uploads
+    Files --> RAG
+
+    Auth --> SQLite
+    Chat --> SQLite
+    Files --> SQLite
+    RAG --> SQLite
+    Actions --> SQLite
+    Usage --> SQLite
+
+    Chat --> Search
 ```
 
-The backend authenticates users, manages conversations and uploaded files, and dispatches requests to configured model providers. Local application data is stored in SQLite; uploaded files and document chunks are stored through backend-managed paths.
+### Components
+
+| Component | Responsibility |
+|---|---|
+| React web workspace | Main chat interface, conversations, file uploads, settings, memories, and usage views |
+| Chrome side panel | Reads selected or visible page context and keeps OmniAssist alongside the current browser tab |
+| Extension offscreen document | Supports browser tab capture and media processing for live interactions |
+| FastAPI backend | Authentication, REST APIs, streaming responses, WebSockets, action control, and persistence |
+| Provider gateway | Converts one application request into provider-specific API calls |
+| RAG engine | Extracts uploaded documents, creates local hashed-vector chunks, and retrieves relevant context |
+| SQLite | Stores users, chats, uploaded-file metadata, memories, actions, usage, and RAG vectors |
+| External providers | Generate text, images, or live media responses |
+
+## Data Flow
+
+### Standard chat request
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as Web or Chrome client
+    participant API as FastAPI
+    participant Auth as Authentication
+    participant RAG as RAG and conversation store
+    participant Provider as Selected AI provider
+
+    User->>Client: Enter prompt or attach context
+    Client->>API: POST /api/chat/stream + bearer token
+    API->>Auth: Validate user and session
+    Auth-->>API: Authenticated user
+    API->>RAG: Load conversation, memories, and relevant document chunks
+    RAG-->>API: Context-enriched messages
+    API->>Provider: Stream provider request
+
+    loop Response chunks
+        Provider-->>API: Partial response
+        API-->>Client: NDJSON progress chunk
+    end
+
+    API->>RAG: Save user prompt and assistant response
+    API->>RAG: Record usage and cost data
+    API-->>Client: Stream complete
+```
+
+### Document upload and retrieval
+
+```mermaid
+flowchart LR
+    Upload["User selects PDF or text file"]
+    UploadAPI["POST /api/files"]
+    Validate["Validate type, size, and content"]
+    Extract["Extract text"]
+    Chunk["Split text into overlapping chunks"]
+    Vector["Create local Blake2s hashed vectors"]
+    DB[(SQLite)]
+    Query["Chat prompt"]
+    Retrieve["Compare prompt vector with chunk vectors"]
+    Context["Add relevant chunks to provider messages"]
+    Answer["Generate grounded response"]
+
+    Upload --> UploadAPI
+    UploadAPI --> Validate
+    Validate --> Extract
+    Extract --> Chunk
+    Chunk --> Vector
+    Vector --> DB
+
+    Query --> Retrieve
+    DB --> Retrieve
+    Retrieve --> Context
+    Context --> Answer
+```
+
+Document text and hashed retrieval vectors stay in the backend-managed SQLite and upload storage. Only the selected prompt context and the text needed for the provider request leave the backend.
+
+### Live voice and screen flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as Web or extension
+    participant API as FastAPI WebSocket
+    participant Gemini as Gemini Live
+
+    User->>Client: Start live session
+    Client->>API: WS /api/live with JWT
+    API->>API: Validate session and provider availability
+    API->>Gemini: Open upstream real-time connection
+
+    loop During session
+        User->>Client: Speak or share screen
+        Client-->>API: Audio or sampled image frames
+        API-->>Gemini: Forward media packets
+        Gemini-->>API: Audio, text, transcription, or session events
+        API-->>Client: Forward live response
+    end
+
+    API->>API: Persist completed turns
+    User->>Client: End session
+    Client->>API: Close WebSocket
+```
+
+### Browser action approval flow
+
+```mermaid
+flowchart TD
+    Prompt["User requests a browser task"]
+    Model["AI proposes a browser action"]
+    Pending["Backend stores action as pending"]
+    UserReview["User reviews action and payload"]
+    Decision{"Approve or reject?"}
+    Execute["Extension executes approved action"]
+    Result["Backend records result"]
+    Reject["Backend records rejection"]
+
+    Prompt --> Model
+    Model --> Pending
+    Pending --> UserReview
+    UserReview --> Decision
+    Decision -->|Approve| Execute
+    Execute --> Result
+    Decision -->|Reject| Reject
+```
+
+The application is designed to keep proposed browser actions in a non-executing pending state until the user approves them.
 
 ## Tech Stack
 
