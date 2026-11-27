@@ -9,81 +9,134 @@
 <body>
   <header>
     <div class="brand-title">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
       <b>omni<span>assist</span></b>
       <span class="brand-badge">companion</span>
     </div>
-    <button id="open" class="btn-secondary" title="Open full web workspace">Open Web ↗</button>
+    <div class="header-actions">
+      <button id="open" class="btn-secondary" title="Open full web workspace">Open Web ↗</button>
+    </div>
   </header>
 
   <div id="status">Connect to your OmniAssist backend.</div>
 
+  <!-- Authentication Section -->
   <section id="auth">
-    <input id="api" value="http://localhost:8000" aria-label="Backend URL" placeholder="Backend URL (http://localhost:8000)">
-    <input id="web-url" value="http://localhost:5173" aria-label="Web workspace URL" placeholder="Web URL (http://localhost:5173)">
-    <input id="email" type="email" placeholder="Email" autocomplete="email">
-    <input id="password" type="password" placeholder="Password" autocomplete="current-password">
-    <input id="invite-code" type="password" placeholder="Invitation code (if required)" autocomplete="one-time-code">
-    <div class="row">
-      <button id="login">Sign in</button>
-      <button id="register" class="btn-secondary">Create account</button>
+    <div class="auth-card">
+      <button id="guest-login" class="btn-primary btn-block">⚡ Quick Demo / Guest Access</button>
+      <div class="auth-divider"><span>or sign in with account</span></div>
+
+      <input id="api" value="http://localhost:8000" aria-label="Backend URL" placeholder="Backend URL (http://localhost:8000)">
+      <input id="web-url" value="http://localhost:5173" aria-label="Web workspace URL" placeholder="Web URL (http://localhost:5173)">
+      <input id="email" type="email" placeholder="Email (e.g. user@example.com)" autocomplete="email">
+      <input id="password" type="password" placeholder="Password (min 8 chars)" autocomplete="current-password">
+      <input id="invite-code" type="password" placeholder="Invitation code (if required)" autocomplete="one-time-code">
+      
+      <div class="row">
+        <button id="login" class="btn-secondary">Sign in</button>
+        <button id="register" class="btn-secondary">Create account</button>
+      </div>
     </div>
   </section>
 
+  <!-- Main Workspace Section -->
   <section id="workspace" hidden>
-    <div class="row">
+    <div class="row conversation-row">
       <select id="conversation" aria-label="Conversation"></select>
-      <button id="new" class="btn-secondary" style="flex:0 0 34px" title="New conversation">＋</button>
+      <button id="new" class="btn-secondary btn-icon" title="New conversation">＋</button>
     </div>
-    <div class="row">
-      <button id="clear-summary" class="btn-secondary" hidden>Clear compact summary</button>
+    <div class="row" style="margin-top:-2px">
+      <button id="clear-summary" class="btn-secondary btn-xs" hidden>Clear compact summary</button>
     </div>
 
-    <select id="model" aria-label="Model"></select>
+    <div class="model-row">
+      <select id="model" aria-label="Model"></select>
+    </div>
     <div id="live-model"></div>
 
-    <div class="row">
-      <button id="capture" class="btn-secondary" title="Read page text and selection">Read page</button>
-      <button id="ask-page" class="btn-secondary" title="Ask OmniAssist about the active tab">Ask page</button>
-      <button id="explain-selection" class="btn-secondary" title="Explain selected text on this tab">Explain selection</button>
-      <button id="screenshot" class="btn-secondary" title="Capture active tab screenshot">Capture tab</button>
+    <!-- Page Context Tools -->
+    <div class="tools-grid">
+      <button id="capture" class="btn-tool" title="Read page text and selection">
+        <span class="tool-icon">📄</span> Read page
+      </button>
+      <button id="ask-page" class="btn-tool" title="Ask OmniAssist about the active tab">
+        <span class="tool-icon">💡</span> Ask page
+      </button>
+      <button id="explain-selection" class="btn-tool" title="Explain selected text on this tab">
+        <span class="tool-icon">🔍</span> Explain
+      </button>
+      <button id="screenshot" class="btn-tool" title="Capture active tab screenshot">
+        <span class="tool-icon">📸</span> Capture tab
+      </button>
     </div>
 
-    <div class="row">
-      <button id="start-live" title="Stream this tab and audio to Gemini Live">Start tab live</button>
-      <button id="capture-live-frame" class="btn-secondary" disabled title="Send current frame now">Capture frame</button>
-      <button id="mute-mic" class="btn-secondary" disabled>Mute mic</button>
-      <button id="end-live" class="btn-danger" disabled>End live</button>
-    </div>
-    <div class="row">
-      <button id="stop-screen" class="btn-secondary" disabled>Stop screen</button>
-      <button id="stop-mic" class="btn-secondary" disabled>Stop mic</button>
+    <!-- Gemini Live Controls -->
+    <div class="live-card">
+      <div class="live-card-header">
+        <span class="live-tag">⚡ GEMINI LIVE 2-WAY VOICE & SCREEN</span>
+      </div>
+      <div class="row">
+        <button id="start-screen-live" class="btn-live-primary" title="Share entire screen or any window across all tabs">
+          🖥️ Share Screen Live
+        </button>
+        <button id="start-live" class="btn-live-secondary" title="Stream this active tab to Gemini Live">
+          📑 Active Tab Live
+        </button>
+      </div>
+      <div class="row live-active-controls" id="live-active-controls" hidden>
+        <button id="capture-live-frame" class="btn-secondary btn-xs" title="Force snapshot now">📸 Send frame</button>
+        <button id="mute-mic" class="btn-secondary btn-xs">🎤 Mute mic</button>
+        <button id="end-live" class="btn-danger btn-xs">⏹ End live</button>
+      </div>
+      <div id="live-indicator" hidden></div>
+      <div id="live-transcript-box" class="live-transcript-box" hidden>
+        <div class="transcript-header">Live Spoken Dialogue</div>
+        <div id="live-transcript" class="transcript-content"></div>
+      </div>
     </div>
 
-    <div id="live-indicator" hidden></div>
     <div id="context" hidden></div>
 
+    <!-- Chat Messages Feed -->
     <div id="messages"></div>
 
-    <details>
+    <!-- Browser Actions Awaiting Approval -->
+    <details class="accordion-item">
       <summary>Browser actions awaiting approval <span id="actions-count" class="pill-count">0</span></summary>
       <div id="actions"></div>
     </details>
 
-    <details>
+    <!-- Activity Feed -->
+    <details class="accordion-item">
       <summary>Recent account activity</summary>
       <div id="activity"></div>
     </details>
 
-    <textarea id="prompt" placeholder="Ask OmniAssist about this page, document, or task…"></textarea>
-    
-    <label class="search-option">
-      <input type="checkbox" id="web-search"> Search the web with Tavily for this turn
-    </label>
+    <!-- Chat Composer -->
+    <div class="composer-container">
+      <textarea id="prompt" placeholder="Ask OmniAssist about this page, screen, or task…"></textarea>
+      
+      <div class="composer-options">
+        <label class="checkbox-option">
+          <input type="checkbox" id="web-search"> Web search (Tavily)
+        </label>
+        <label class="checkbox-option">
+          <input type="checkbox" id="read-aloud" checked> 🔊 Read reply aloud
+        </label>
+      </div>
 
-    <div class="row">
-      <button id="send">Send</button>
-      <button id="suggest-action" class="btn-secondary" title="Ask AI to propose a safe browser action">Suggest action</button>
-      <button id="logout" class="btn-secondary" style="flex:0 0 auto">Sign out</button>
+      <div class="row composer-actions">
+        <button id="voice-input" class="btn-secondary btn-icon" title="Click to speak (Speech to text)">🎙️</button>
+        <button id="send" class="btn-primary">Send ↗</button>
+        <button id="suggest-action" class="btn-secondary" title="Ask AI to propose a safe browser action">Action</button>
+        <button id="logout" class="btn-secondary btn-icon" title="Sign out">⎋</button>
+      </div>
     </div>
   </section>
 

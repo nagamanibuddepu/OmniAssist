@@ -997,6 +997,36 @@ function App() {
     }
   }
 
+  const loginAsGuest = async () => {
+    setAuthBusy(true)
+    setError('')
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const guestEmail = `guest_${randomSuffix}@omniassist.demo`
+    const guestPassword = `Guest${randomSuffix}2026!`
+    try {
+      let result: { access_token: string }
+      try {
+        result = await request<{ access_token: string }>('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ email: guestEmail, password: guestPassword, invite_code: authInviteCode })
+        })
+      } catch {
+        result = await request<{ access_token: string }>('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email: guestEmail, password: guestPassword })
+        })
+      }
+      sessionToken = result.access_token
+      sessionStorage.setItem('omniassist.session', sessionToken)
+      setToken(sessionToken)
+      setAuthPassword('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not connect to guest demo session.')
+    } finally {
+      setAuthBusy(false)
+    }
+  }
+
   const clearConversationSummary = async () => {
     if (!active || !window.confirm('Clear the compact summary for this conversation? Original messages will remain.')) return
     try {
@@ -2026,6 +2056,17 @@ function App() {
           <h1>{authMode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
           <p>Sign in to access your conversations and files.</p>
           {error && <div className="error-banner">{error}</div>}
+          <button
+            type="button"
+            className="auth-guest-btn"
+            onClick={loginAsGuest}
+            disabled={authBusy}
+          >
+            ⚡ Try Instant Demo (No signup needed)
+          </button>
+          <div className="auth-divider">
+            <span>or continue with email</span>
+          </div>
           <label>
             Email
             <input type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} autoComplete="email" required />
