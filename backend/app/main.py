@@ -37,7 +37,7 @@ app.add_middleware(
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "https://omni-assist-l0u2fyr9u-buddepunagamani-2229s-projects.vercel.app",
-        "https://omni-assist-snowy.vercel.app/",
+        "https://omni-assist-snowy.vercel.app",
         settings.omniassist_web_origin,
     ],
     allow_origin_regex=r"^(https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.\d+\.\d+\.\d+)(:\d+)?|chrome-extension://[a-p]{32})$",
